@@ -17,6 +17,8 @@
 #include <unordered_map>
 #include <fstream>
 #include <random>
+#include <vector>
+#include <array>
 using namespace std;
 
 class Markov {
@@ -36,8 +38,8 @@ class Markov {
 		/*
 		post: creates an empty Markov model with initial state ["", ""].
 		*/
-		string state[2];				   // last two words processed
-		unordered_map<string, string> model;  // maps states to words
+		string state[2] = { NULL, NULL };				   // last two words processed
+		unordered_map<array<string,2>, vector<string>> model;  // maps states to words
 
 
 	//--------------------------------------------------------------------
@@ -131,10 +133,13 @@ void Markov::add(string word) {
         the state is now {"man", "ate"}
 	*/
 
-	if (model.find(state[0])!=model.end()) {
+	if (model.find(state) != model.end()) {
 		// we have an existing list of words for this state
 		// just add this new one(word).
-		//model[state].push_back(word);
+		vector<string> temp;
+		temp = model[state];
+		temp.push_back(word);
+		model[state] = temp;
 		cout << "help!" << endl;
 	}
 	else {
@@ -147,7 +152,7 @@ void Markov::add(string word) {
 	_transition(word);
 }
 
-string Markov::randomNext() {
+string Markov::_randomNext() {
 
 	/*
 	post: Returns a random choice from among the possible choices
@@ -184,7 +189,7 @@ void Markov::_transition(string next) {
 	state[1] = next;
 }
 
-void Markov::reset() {
+void Markov::_reset() {
 
 	/*
 	post: The model state is reset to its initial 
@@ -197,5 +202,5 @@ void Markov::reset() {
 		  sequence.
 	*/
 
-	state[2] = {"", ""};
+	vector<string> state{"", ""};
 }
