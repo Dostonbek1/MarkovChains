@@ -255,5 +255,5 @@ void Markov::_reset() {
 		  sequence.
 	*/
 
-	Tuple<string, string> N = { "", "" };
+	Tuple<string, string> state = { "", "" };
 }
