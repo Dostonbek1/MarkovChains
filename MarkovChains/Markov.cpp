@@ -1,16 +1,10 @@
-// Markov.cpp from Markov.py
-//
-// by David M.Reed and John Zelle
+// Converted from an original Python file to C++ by Dostonbek Toirov and Jan Pearce, Nov. 13, 2018
+// Python by David M.Reed and John Zelle
 // from Data Structures and Algorithms Using Python and C++
 // downloaded from publisher's website:
 // https://www.fbeedle.com/content/data-structures-and-algorithms-using-python-and-c
 // on July 23, 2014
-// Python version modified by Jan Pearce, Sept. 7, 2014
-//  - local variable "model" in the makeWordModel function was renamed to "tmpmodel"
-//    to avoid confusion with "model" instance variable in class Markov
-//  - input() function is replaced with raw_input() to conform with Python 2.7
 // Python version modified by Mario Nakazawa, Sept. 7, 2014
-// Converted to C++ by Dostonbek Toirov and Jan Pearce, Nov. 13, 2018
 //  - added docstrings to both functions
 
 #include <iostream>
