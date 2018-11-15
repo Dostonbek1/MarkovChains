@@ -10,6 +10,7 @@
 //    to avoid confusion with "model" instance variable in class Markov
 //  - input() function is replaced with raw_input() to conform with Python 2.7
 // Python version modified by Mario Nakazawa, Sept. 7, 2014
+// Converted to C++ by Dostonbek Toirov and Jan Pearce, Nov. 13, 2018
 //  - added docstrings to both functions
 
 #include <iostream>
@@ -19,7 +20,42 @@
 #include <random>
 #include <vector>
 #include <array>
+#include <time.h>
 using namespace std;
+
+template<typename T1, typename T2>
+struct Tuple
+{
+	T1 x;
+	T2 y;
+
+	// constructor
+	Tuple(T1 x, T2 y)
+	{
+		this->x = x;
+		this->y = y;
+	}
+
+	// operator== is required to compare keys in case of hash collision
+	bool operator==(const Tuple &p) const
+	{
+		return x == p.x && y == p.y;
+	}
+};
+
+// specialized hash function for unordered_map keys
+struct hash_fn
+{
+	template <class T1, class T2>
+	size_t operator() (const Tuple<T1, T2> &node) const
+	{
+		size_t h1 = hash<T1>()(node.x);
+		size_t h2 = hash<T2>()(node.y);
+
+		return h1 ^ h2;
+	}
+};
+
 
 class Markov {
 	/*
@@ -37,10 +73,9 @@ class Markov {
 	private:
 		/*
 		post: creates an empty Markov model with initial state ["", ""].
-		*/
-		string state[2] = { NULL, NULL };				   // last two words processed
-		unordered_map<array<string,2>, vector<string>> model;  // maps states to words
-
+		*/   
+		Tuple<string, string> state = { "", "" };							// last two words processed
+		unordered_map<Tuple<string,string>, vector<string>, hash_fn> model;  // maps states to words
 
 	//--------------------------------------------------------------------
 
@@ -51,6 +86,23 @@ class Markov {
 		void _transition(string next);
 		void _reset();
 };
+
+vector<string> split(string words, string delimiter) {
+	/*
+	Helper function to split a string into a vector of strings by given delimiter
+	*/
+	size_t pos = 0;
+	string token;
+	vector<string> output;
+	while ((pos = words.find(delimiter)) != string::npos) {
+		token = words.substr(0, pos);
+		cout << "token: " << token << endl;
+		output.push_back(token);
+		words.erase(0, pos + delimiter.length());
+	}
+	output.push_back(words);
+	return output;
+}
 
 Markov makeWordModel(string filename) {
 
@@ -63,15 +115,20 @@ Markov makeWordModel(string filename) {
 	ifstream inFile;
 	inFile.open(filename);
 	Markov tmpmodel;
-	string line;
-	while (getline(inFile, line)) {
-		string words;
-
-
+	char line[10000];
+	vector<string> words;
+	if (inFile.is_open()) {
+		while (!inFile.eof()) {
+			inFile >> line;
+			words = split(line, " ");
+			for (int i = 0; i < words.size(); i++) {
+				tmpmodel.add(words[i]);
+			}
+		}
 	}
 	inFile.close();
 	// Add a sentinel at the end of the text
-	tmpmodel.add(NULL);
+	tmpmodel.add("");
 	tmpmodel._reset();
 	return tmpmodel;
 }
@@ -95,7 +152,7 @@ string generateWordChain(Markov markov, int n) {
 	// join the individual words in words list and store it to joinedWords
 	string joinedWords;
 	for (auto const& s : words) { 
-		joinedWords += s;
+		joinedWords = joinedWords + s + " ";
 	}
 	return joinedWords;
 }
@@ -103,11 +160,12 @@ string generateWordChain(Markov markov, int n) {
 int main()
 {
 	string fname;
-	cout << "Enter filename: " << endl;
+	cout << "Enter filename (i.e. doctorwho.txt): " << endl;
 	cin >> fname;
 	Markov m = makeWordModel(fname);
 	cout << generateWordChain(m, 50);
 
+	cin >> fname;
 	return 0;
 }
 
@@ -116,9 +174,7 @@ int main()
 //---------------------------------
 
 Markov::Markov() {
-	/* post: creates an empty Markov model with initial state ["", ""]. */
-	state[2] = { "","" };				   // last two words processed
-	//not sure?  model = ;  // maps states to words
+
 }
 
 void Markov::add(string word) {
@@ -136,11 +192,7 @@ void Markov::add(string word) {
 	if (model.find(state) != model.end()) {
 		// we have an existing list of words for this state
 		// just add this new one(word).
-		vector<string> temp;
-		temp = model[state];
-		temp.push_back(word);
-		model[state] = temp;
-		cout << "help!" << endl;
+		model[state].push_back(word);
 	}
 	else {
 		// first occurrence of this state, create a new list
@@ -171,6 +223,7 @@ string Markov::_randomNext() {
 	// get list of next words for this state
 	vector<string> lst = model[state];
 	// choose one at random
+	srand(time(NULL));
 	int randIndex = rand() % lst.size();
 	string choice = lst[randIndex];
 	// transition to next state, given the word choice
@@ -185,8 +238,8 @@ void Markov::_transition(string next) {
 	*/
 
 	// help function to construct next state
-	state[0] = state[1];
-	state[1] = next;
+	state.x = state.y;
+	state.y = next;
 }
 
 void Markov::_reset() {
@@ -202,5 +255,5 @@ void Markov::_reset() {
 		  sequence.
 	*/
 
-	vector<string> state{"", ""};
+	Tuple<string, string> state = { "", "" };
 }
