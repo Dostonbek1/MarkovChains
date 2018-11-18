@@ -13,13 +13,13 @@
 #include <fstream>
 #include <random>
 #include <vector>
-#include <array>
 #include <time.h>
 using namespace std;
 
 template<typename T1, typename T2>
-struct Tuple
+class Tuple
 {
+public:
 	T1 x;
 	T2 y;
 
@@ -38,15 +38,16 @@ struct Tuple
 };
 
 // specialized hash function for unordered_map keys
-struct hash_fn
+class hash_fn
 {
+public:
 	template <class T1, class T2>
-	size_t operator() (const Tuple<T1, T2> &node) const
+	size_t operator() (const Tuple<T1, T2> &node) const // size_t is a kind of an unsigned int
 	{
 		size_t h1 = hash<T1>()(node.x);
 		size_t h2 = hash<T2>()(node.y);
 
-		return h1 ^ h2;
+		return h1 ^ h2; // This is a boolean operation
 	}
 };
 
@@ -55,11 +56,11 @@ class Markov {
 	/*
 	   A simple trigram Markov model.  The current state is a sequence
 	   of the two words seen most recently. Initially, the state is
-	   { None, None }, since no words have been seen. Scanning the
+	   { "", "" }, since no words have been seen. Scanning the
 	   sentence "The man ate the pasta" would cause the
-	   model to go through the sequence of states: { {NULL,NULL},
-	   {NULL, 'The'}, {'The', 'man'}, {'man','ate'}, {'ate','the'},
-	   {'the','pasta'} }
+	   model to go through the sequence of states: { {"",""},
+	   {"", "The"}, {"The", "man"}, {"man","ate"}, {"ate","the"},
+	   {"the","pasta"} }
 	*/
 
 	//--------------------------------------------------------------------
